@@ -1,17 +1,24 @@
 package com.rsschool.android2021
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import java.util.*
+
 
 class SecondFragment : Fragment() {
 
     private var backButton: Button? = null
     private var result: TextView? = null
+    private var listener: RandomizerClickListener? = null
+    private lateinit var callback: OnBackPressedCallback
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,31 +36,56 @@ class SecondFragment : Fragment() {
         val min = arguments?.getInt(MIN_VALUE_KEY) ?: 0
         val max = arguments?.getInt(MAX_VALUE_KEY) ?: 0
 
-        result?.text = generate(min, max).toString()
+        val previousNumber = generate(min, max)
+        result?.text = previousNumber.toString()
+
+        callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                listener?.sendResult(previousNumber)
+
+            }
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
 
         backButton?.setOnClickListener {
-            // TODO: implement back
+            listener?.sendResult(previousNumber)
+
         }
     }
 
-    private fun generate(min: Int, max: Int): Int {
-        // TODO: generate random number
-        return 0
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        listener = activity as RandomizerClickListener
+
     }
 
-    companion object {
+    override fun onDetach() {
+        super.onDetach()
+        listener = null
+        callback.remove()
 
-        @JvmStatic
-        fun newInstance(min: Int, max: Int): SecondFragment {
-            val fragment = SecondFragment()
-            val args = Bundle()
+    }
 
-            // TODO: implement adding arguments
+        private fun generate(min: Int, max: Int): Int {
+            val random = Random()
+            return random.nextInt(max - min + 1) + min
 
-            return fragment
         }
 
-        private const val MIN_VALUE_KEY = "MIN_VALUE"
-        private const val MAX_VALUE_KEY = "MAX_VALUE"
+        companion object {
+
+            private const val MIN_VALUE_KEY = "MIN_VALUE"
+            private const val MAX_VALUE_KEY = "MAX_VALUE"
+
+            @JvmStatic
+            fun newInstance(min: Int, max: Int): SecondFragment {
+                val fragment = SecondFragment()
+                val args = Bundle()
+                args.putInt(MIN_VALUE_KEY, min)
+                args.putInt(MAX_VALUE_KEY, max)
+                fragment.arguments = args
+                return fragment
+            }
+        }
     }
-}
