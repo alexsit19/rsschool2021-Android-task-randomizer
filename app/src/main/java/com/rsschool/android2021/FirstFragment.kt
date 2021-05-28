@@ -2,7 +2,6 @@ package com.rsschool.android2021
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -129,7 +128,6 @@ class FirstFragment : Fragment() {
             } else if (maxInt - minInt < 0) {
                 snackbar?.setText("Значение Min больше Max, нужно наоборот")?.show()
                 generateButton?.isEnabled = false
-                Log.d("DEBUG", "MESAGEssssssssssssssssss")
 
             } else {
                  snackbar?.setText("Введенные значения подходят")?.show()
