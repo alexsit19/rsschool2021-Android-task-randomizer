@@ -16,7 +16,11 @@ class FirstFragment : Fragment() {
     private var previousResult: TextView? = null
     private var minValueEditText: EditText? = null
     private var maxValueEditText: EditText? = null
+    private var minMaxEnabled: CheckBox? = null
     private var listener: RandomizerClickListener? = null
+    private var minOk = false
+    private var maxOk = false
+    private var snack: Snackbar? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,67 +46,29 @@ class FirstFragment : Fragment() {
         generateButton = view.findViewById(R.id.generate)
         minValueEditText = view.findViewById(R.id.min_value)
         maxValueEditText = view.findViewById(R.id.max_value)
+        minMaxEnabled = view.findViewById(R.id.checkBox)
 
         generateButton?.isEnabled = false
 
         val result = arguments?.getInt(PREVIOUS_RESULT_KEY)
         previousResult?.text = "Previous result: ${result.toString()}"
 
-        var minOk = false
-        var maxOk = false
-        val snackbar = Snackbar.make(view, "", Snackbar.LENGTH_SHORT)
+
+        snack = Snackbar.make(view, "", Snackbar.LENGTH_SHORT)
 
         minValueEditText?.addTextChangedListener {
-           val inputData = it.toString()
-           if (inputData == "") {
-               minOk = false
-               snackbar.setText("В поле Min ничего не введено").show()
-               generateButton?.isEnabled = false
+           testMinInputData(it.toString())
 
-           } else if (inputData.length >= 2 && inputData[0] == '0') {
-               minOk = false
-               snackbar.setText("Число в поле Min не должно начинаться с нуля").show()
-               generateButton?.isEnabled = false
+        }
 
-           }
-           else if (inputData.length >= 10 && inputData.toLong() > Int.MAX_VALUE) {
-               minOk = false
-                   snackbar.setText("Работаем только в диапаоне от 0 до ${Int.MAX_VALUE}").show()
-                   generateButton?.isEnabled = false
-
-           }
-           else {
-               minOk = true
-               val min = minValueEditText?.text.toString()
-               val max = maxValueEditText?.text.toString()
-               testInputData(minOk, maxOk, min, max)
-           }
+        minMaxEnabled?.setOnCheckedChangeListener { buttonView, isChecked ->
+            testMinInputData(minValueEditText?.text.toString())
+            testMaxInputData(maxValueEditText?.text.toString())
 
         }
 
         maxValueEditText?.addTextChangedListener {
-            val inputData = it.toString()
-            if (inputData == "") {
-                maxOk = false
-                snackbar.setText("В поле Max ничего не введено").show()
-                generateButton?.isEnabled = false
-
-            } else if (inputData.isNotEmpty() && inputData[0] == '0') {
-                maxOk = false
-                snackbar.setText("Число в поле Max не должно начинаться с нуля").show()
-                generateButton?.isEnabled = false
-
-            } else if (inputData.length >= 10 && inputData.toLong() > Int.MAX_VALUE) {
-                maxOk = false
-                snackbar.setText("Работаем только в диапаоне от 0 до ${Int.MAX_VALUE}").show()
-                generateButton?.isEnabled = false
-
-                } else {
-                    maxOk = true
-                    val min = minValueEditText?.text.toString()
-                    val max = maxValueEditText?.text.toString()
-                    testInputData(minOk, maxOk, min, max)
-            }
+            testMaxInputData(it.toString())
         }
 
         generateButton?.setOnClickListener {
@@ -113,27 +79,101 @@ class FirstFragment : Fragment() {
         }
     }
 
+    private fun testMaxInputData(inputData: String) {
+
+        if (inputData == "") {
+            maxOk = false
+            if(minValueEditText?.text?.isEmpty() == true) {
+                snack?.setText("В поле Max и Min ничего не введено")?.show()
+                generateButton?.isEnabled = false
+
+            } else {
+                snack?.setText("В поле Max ничего не введено")?.show()
+                generateButton?.isEnabled = false
+
+            }
+        } else if (inputData.length >= 2 && inputData[0] == '0') {
+            maxOk = false
+            snack?.setText("Число в поле Max не должно начинаться с нуля")?.show()
+            generateButton?.isEnabled = false
+
+        } else if (inputData.length >= 10 && inputData.toLong() > Int.MAX_VALUE) {
+            maxOk = false
+            snack?.setText("Работаем только в диапаоне от 0 до ${Int.MAX_VALUE}")?.show()
+            generateButton?.isEnabled = false
+
+        } else {
+            maxOk = true
+            val min = minValueEditText?.text.toString()
+            val max = maxValueEditText?.text.toString()
+            testInputData(minOk, maxOk, min, max)
+        }
+    }
+
+    private fun testMinInputData(inputData: String) {
+        if (inputData == "") {
+            minOk = false
+            if (maxValueEditText?.text?.isEmpty() == true) {
+                snack?.setText("В поле Max и Min ничего не введено")?.show()
+                generateButton?.isEnabled = false
+
+            } else {
+                snack?.setText("В поле Min ничего не введено")?.show()
+                generateButton?.isEnabled = false
+
+            }
+        } else if (inputData.length >= 2 && inputData[0] == '0') {
+            minOk = false
+            snack?.setText("Число в поле Min не должно начинаться с нуля")?.show()
+            generateButton?.isEnabled = false
+
+        }
+        else if (inputData.length >= 10 && inputData.toLong() > Int.MAX_VALUE) {
+            minOk = false
+            snack?.setText("Работаем только в диапаоне от 0 до ${Int.MAX_VALUE}")?.show()
+            generateButton?.isEnabled = false
+
+        }
+        else {
+            minOk = true
+            val min = minValueEditText?.text.toString()
+            val max = maxValueEditText?.text.toString()
+            testInputData(minOk, maxOk, min, max)
+        }
+    }
+
     private fun testInputData (minOk: Boolean, maxOk: Boolean, min: String, max: String) {
-        val snackbar = view?.let { Snackbar.make(it, "", Snackbar.LENGTH_SHORT) }
 
         if (minOk && maxOk) {
 
             val maxInt = max.toInt()
             val minInt = min.toInt()
 
-            if (maxInt == minInt) {
-                snackbar?.setText("Значения Max и Min не должны быть равны")?.show()
-                generateButton?.isEnabled = false
+            if (minMaxEnabled?.isChecked == false) {
+                if (maxInt == minInt) {
+                    snack?.setText("Значения Max и Min не должны быть равны")?.show()
+                    generateButton?.isEnabled = false
 
-            } else if (maxInt - minInt < 0) {
-                snackbar?.setText("Значение Min больше Max, нужно наоборот")?.show()
-                generateButton?.isEnabled = false
+                } else if (maxInt - minInt < 0) {
+                    snack?.setText("Значение Min больше Max, нужно наоборот")?.show()
+                    generateButton?.isEnabled = false
 
-            } else {
-                 snackbar?.setText("Введенные значения подходят")?.show()
-                 generateButton?.isEnabled = true
+                } else {
+                    snack?.setText("Введенные значения подходят")?.show()
+                    generateButton?.isEnabled = true
 
-            }
+                }
+
+            }   else {
+                    if (maxInt - minInt < 0) {
+                        snack?.setText("Значение Min больше Max, нужно наоборот")?.show()
+                        generateButton?.isEnabled = false
+
+                    } else {
+                        snack?.setText("Введенные значения подходят")?.show()
+                        generateButton?.isEnabled = true
+                    }
+                }
         }
     }
 

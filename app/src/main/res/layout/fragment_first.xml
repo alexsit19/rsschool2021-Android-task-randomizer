@@ -52,5 +52,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/max_value" />
 
+    <CheckBox
+        android:id="@+id/checkBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enable: Min == Max"
+        android:checked="true"
+        app:layout_constraintBottom_toTopOf="@+id/min_value"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/previous_result" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
